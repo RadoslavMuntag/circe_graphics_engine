@@ -3,6 +3,9 @@
 #include "../Math/Transform.h"
 #include <string>
 #include <memory>
+#include <memory>
+#include <vector>
+#include "Behavior.h"
 
 namespace Circe {
 
@@ -16,7 +19,7 @@ namespace Circe {
 
         virtual ~Entity() = default;
 
-        virtual void OnUpdate(float deltaTime) {}
+        virtual void OnUpdate(float deltaTime);
         virtual void OnRender(Renderer& renderer);
 
         Transform& GetTransform() { return m_Transform; }
@@ -31,11 +34,22 @@ namespace Circe {
         void SetModel(std::shared_ptr<Model> model) { m_Model = model; }
         std::shared_ptr<Model> GetModel() const { return m_Model; }
 
+        template<typename T, typename... Args>
+        T* AddBehavior(Args&&... args) {
+            auto behavior = std::make_unique<T>(std::forward<Args>(args)...);
+            behavior->SetOwner(this);
+            T* ptr = behavior.get();
+            m_Behaviors.push_back(std::move(behavior));
+            return ptr;
+        }
+
+
     protected:
         Transform m_Transform;
         std::string m_Name;
         bool m_Active;
         std::shared_ptr<Model> m_Model;
+        std::vector<std::unique_ptr<Behavior>> m_Behaviors;
     };
 
 }

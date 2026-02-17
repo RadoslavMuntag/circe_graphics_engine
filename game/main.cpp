@@ -7,63 +7,63 @@
 #include <Renderer/Shader.h>
 #include <Scene/Entity.h>
 #include <Scene/Scene.h>
+#include <Resources/SimpleMeshGen.h>
 
-#include <iostream>
+#include <memory>
 
 namespace {
-
-    class TriangleScene : public Circe::Scene {
+    class ParticleSystemScene : public Circe::Scene {
     public:
-        TriangleScene() {
-            std::vector<Circe::Vertex> vertices = {
-                { { -0.5f, -0.5f, 0.0f }, { 0.0f, 0.0f, 1.0f }, { 0.0f, 0.0f } },
-                { {  0.5f, -0.5f, 0.0f }, { 0.0f, 0.0f, 1.0f }, { 1.0f, 0.0f } },
-                { {  0.0f,  0.5f, 0.0f }, { 0.0f, 0.0f, 1.0f }, { 0.5f, 1.0f } }
-            };
-            std::vector<unsigned int> indices = { 0, 1, 2 };
-
-            m_Mesh = std::make_shared<Circe::Mesh>(vertices, indices);
+        ParticleSystemScene() {
+            m_ParticleMesh = Circe::GenerateSphereMesh(0.1f, 16, 16);
 
             auto shader = std::make_shared<Circe::Shader>(
-                "../../assets/shaders/triangle.vert",
-                "../../assets/shaders/triangle.frag"
+                "assets/shaders/default.vert",
+                "assets/shaders/default.frag"
             );
-            m_Material = std::make_shared<Circe::Material>(shader);
-            m_Material->SetColor(glm::vec4(1.0f, 0.4f, 0.2f, 1.0f));
-
-            m_Model = std::make_shared<Circe::Model>(m_Mesh, m_Material);
+            m_ParticleMaterial = std::make_shared<Circe::Material>(shader);
+            m_ParticleMaterial->SetColor(glm::vec4(1.0f, 0.4f, 0.2f, 1.0f));
         }
 
         void OnInit() override {
-            // Create a triangle entity with the model
-            auto entity = std::make_unique<Circe::Entity>("Triangle");
-            entity->SetModel(m_Model);
+            // Create a simple particle entity
+            auto entity = std::make_unique<Circe::Entity>("Particle");
+            m_ParticleModel = std::make_shared<Circe::Model>(m_ParticleMesh, m_ParticleMaterial);
+            entity->SetModel(m_ParticleModel);
             AddEntity(std::move(entity));
         }
 
         void OnUpdate(float deltaTime) override {
-            // Optional: Update the triangle's transform here
-            auto entity = GetEntity("Triangle");
+            // Update particle position or properties here
+            auto entity = GetEntity("Particle");
             if (entity) {
-                entity->GetTransform().Rotation = glm::quat(glm::radians(glm::vec3(deltaTime, deltaTime, 0.0f))) * entity->GetTransform().Rotation;
+                auto& transform = entity->GetTransform();
+                //transform.Position += glm::vec3(0.0f, deltaTime, 0.0f); // Move up over time
             }
         }
 
     private:
-        std::shared_ptr<Circe::Mesh> m_Mesh;
-        std::shared_ptr<Circe::Material> m_Material;
-        std::shared_ptr<Circe::Model> m_Model;
+        std::shared_ptr<Circe::Mesh> m_ParticleMesh;
+        std::shared_ptr<Circe::Material> m_ParticleMaterial;
+        std::shared_ptr<Circe::Model> m_ParticleModel;
+
+
     };
 
 }
 
+int WIDTH = 720;
+int HEIGHT = 1280;
+
 int main() {
-    Circe::Engine engine(1280, 720, "Circe Engine");
-    TriangleScene scene;
+    
+    Circe::Engine engine(WIDTH, HEIGHT, "Circe Engine");
+    ParticleSystemScene scene;
     
     // Create a camera and set it on the renderer
-    auto camera = std::make_shared<Circe::Camera>(45.0f, 1280.0f / 720.0f, 0.1f, 100.0f);
+    auto camera = std::make_shared<Circe::Camera>(45.0f, static_cast<float>(WIDTH) / static_cast<float>(HEIGHT), 0.1f, 100.0f);
     camera->SetPosition(glm::vec3(0.0f, 0.0f, 3.0f));
+    camera->SetLookAt(glm::vec3(0.0f, 0.0f, 0.0f));
     engine.GetRenderer()->SetCamera(camera);
     
     engine.SetScene(&scene);
