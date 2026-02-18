@@ -43,6 +43,16 @@ namespace Circe {
             return ptr;
         }
 
+        template<typename T>
+        T* GetBehavior() {
+            for (auto& b : m_Behaviors) {
+                if (auto* ptr = dynamic_cast<T*>(b.get())) {
+                    return ptr;
+                }
+            }
+            return nullptr;
+        }
+
 
     protected:
         Transform m_Transform;
