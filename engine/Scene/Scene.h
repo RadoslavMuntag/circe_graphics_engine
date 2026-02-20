@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../Core/Export.h"
 #include "Entity.h"
 #include <vector>
 #include <memory>
@@ -8,7 +9,7 @@ namespace Circe {
 
     class Renderer;
 
-    class Scene {
+    class CIRCE_API Scene {
     public:
         Scene() = default;
         virtual ~Scene() = default;

@@ -1,0 +1,42 @@
+{
+  // CMake settings
+  "cmake.buildDirectory": "${workspaceFolder}/build/debug",
+  "cmake.configureOnOpen": false,
+  
+  // C++ settings
+  "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools",
+  "C_Cpp.default.cppStandard": "c++23",
+  "C_Cpp.errorSquiggles": "enabled",
+  
+  // File associations
+  "files.associations": {
+    "*.h": "cpp",
+    "*.cpp": "cpp",
+    "*.glsl": "glsl",
+    "*.vert": "glsl",
+    "*.frag": "glsl"
+  },
+  
+  // Editor settings
+  "editor.formatOnSave": false,
+  "editor.rulers": [100],
+  
+  // Files to exclude from explorer
+  "files.exclude": {
+    "**/.git": true,
+    "**/.DS_Store": true,
+    "**/build/debug/CMakeFiles": true,
+    "**/build/release/CMakeFiles": true,
+    "**/build/debug/.ninja_deps": true,
+    "**/build/release/.ninja_deps": true,
+    "**/build/debug/.ninja_log": true,
+    "**/build/release/.ninja_log": true
+  },
+  
+  // Search exclusions
+  "search.exclude": {
+    "**/build/debug/CMakeFiles": true,
+    "**/build/release/CMakeFiles": true,
+    "**/external": true
+  }
+}

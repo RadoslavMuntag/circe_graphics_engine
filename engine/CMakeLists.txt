@@ -1,4 +1,4 @@
-add_library(Circe STATIC)
+add_library(Circe SHARED)
 
 target_sources(Circe
     PRIVATE
@@ -12,12 +12,26 @@ target_sources(Circe
         ${CMAKE_CURRENT_SOURCE_DIR}/Renderer/Texture.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Renderer/Mesh.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Renderer/Material.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/Renderer/Light.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Renderer/Model.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Resources/SimpleMeshGen.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Scene/Behavior.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Scene/Entity.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Scene/Scene.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/stb.cpp
+)
+
+# Shared library configuration
+target_compile_definitions(Circe 
+    PRIVATE 
+        CIRCE_BUILD_DLL
+        $<$<CONFIG:Debug>:CIRCE_DEBUG>
+        $<$<CONFIG:Release>:CIRCE_RELEASE>
+)
+set_target_properties(Circe PROPERTIES
+    POSITION_INDEPENDENT_CODE ON
+    VERSION 1.0.0
+    SOVERSION 1
 )
 
 target_include_directories(Circe
@@ -46,6 +60,10 @@ target_include_directories(glad PUBLIC
     ${CMAKE_SOURCE_DIR}/external/glad/include
 )
 
+set_target_properties(glad PROPERTIES
+    POSITION_INDEPENDENT_CODE ON
+)
+
 target_link_libraries(Circe PRIVATE glad)
 
 # GLM
@@ -71,6 +89,10 @@ add_library(imgui STATIC
 target_include_directories(imgui PUBLIC
     ${IMGUI_DIR}
     ${IMGUI_DIR}/backends
+)
+
+set_target_properties(imgui PROPERTIES
+    POSITION_INDEPENDENT_CODE ON
 )
 
 target_link_libraries(imgui PRIVATE glfw glad)

@@ -1,5 +1,6 @@
 #include "Renderer.h"
 #include "Camera.h"
+#include "Light.h"
 #include "Mesh.h"
 #include "Material.h"
 #include "Shader.h"
@@ -45,6 +46,12 @@ namespace Circe {
         m_ClearColor = color;
     }
 
+    void Renderer::SetLight(const Light& light) {
+        m_LightPosition = light.GetWorldPosition();
+        m_LightColor = light.GetColor();
+        m_LightIntensity = light.GetIntensity();
+    }
+
     void Renderer::DrawTriangle(const glm::vec3& p1, const glm::vec3& p2, const glm::vec3& p3) {
         // TODO: Implement with VAO/VBO
     }
@@ -66,11 +73,15 @@ namespace Circe {
 
         for (const auto& cmd : m_RenderQueue) {
             cmd.material->Bind();
-            
-            // Set matrix uniforms
-            cmd.material->GetShader()->SetMat4("projection", m_Camera->GetProjectionMatrix());
-            cmd.material->GetShader()->SetMat4("view", m_Camera->GetViewMatrix());
-            cmd.material->GetShader()->SetMat4("model", cmd.modelMatrix);
+
+            auto shader = cmd.material->GetShader();
+            shader->SetMat4("projection", m_Camera->GetProjectionMatrix());
+            shader->SetMat4("view", m_Camera->GetViewMatrix());
+            shader->SetMat4("model", cmd.modelMatrix);
+            shader->SetVec3("lightPos", m_LightPosition);
+            shader->SetVec3("lightColor", m_LightColor);
+            shader->SetFloat("lightIntensity", m_LightIntensity);
+            shader->SetFloat("ambientStrength", m_AmbientStrength);
 
             cmd.mesh->Bind();
             glDrawElements(GL_TRIANGLES, cmd.mesh->GetIndexCount(), GL_UNSIGNED_INT, 0);

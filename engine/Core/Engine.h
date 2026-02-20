@@ -1,11 +1,12 @@
 #include <memory>
+#include "Export.h"
 
 namespace Circe {
     class Window;
     class Renderer;
     class Scene;
 
-    class Engine {
+    class CIRCE_API Engine {
     public:
         Engine(int width, int height, const char* title);
         ~Engine();

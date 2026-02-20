@@ -23,6 +23,7 @@ namespace Circe {
             if (texture) {
                 texture->Bind(textureUnit);
                 if (m_Shader) {
+                    m_Shader->SetBool("hasTexture", true);
                     m_Shader->SetInt(name.c_str(), textureUnit);
                 }
                 textureUnit++;

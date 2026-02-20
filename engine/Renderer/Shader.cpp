@@ -80,6 +80,10 @@ namespace Circe {
     void Shader::Use() const {
         glUseProgram(m_ID);
     }
+    
+    void Shader::SetBool(const char* name, bool value) const {
+        glUniform1i(glGetUniformLocation(m_ID, name), (int)value);
+    }
 
     void Shader::SetInt(const char* name, int value) const {
         glUniform1i(glGetUniformLocation(m_ID, name), value);
@@ -87,6 +91,10 @@ namespace Circe {
 
     void Shader::SetFloat(const char* name, float value) const {
         glUniform1f(glGetUniformLocation(m_ID, name), value);
+    }
+
+    void Shader::SetVec3(const char* name, const glm::vec3& value) const {
+        glUniform3f(glGetUniformLocation(m_ID, name), value.x, value.y, value.z);
     }
 
     void Shader::SetVec4(const char* name, const glm::vec4& value) const {

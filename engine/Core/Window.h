@@ -1,10 +1,12 @@
 #pragma once
 
+#include "Export.h"
+
 struct GLFWwindow;
 
 namespace Circe {
 
-    class Window {
+    class CIRCE_API Window {
     public:
         Window(int width, int height, const char* title);
         ~Window();

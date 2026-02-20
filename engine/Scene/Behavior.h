@@ -1,10 +1,12 @@
 #pragma once
 
+#include "../Core/Export.h"
+
 namespace Circe {
 
     class Entity;
 
-    class Behavior {
+    class CIRCE_API Behavior {
     public:
         virtual ~Behavior() = default;
         

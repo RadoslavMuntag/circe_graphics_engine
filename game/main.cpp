@@ -5,10 +5,16 @@
 #include <Renderer/Model.h>
 #include <Renderer/Renderer.h>
 #include <Renderer/Shader.h>
+#include <Renderer/Light.h>
+#include <Renderer/Texture.h>
 #include <Scene/Entity.h>
 #include <Scene/Scene.h>
 #include <Resources/SimpleMeshGen.h>
+#include <Core/Window.h>
 
+#include <glm/glm.hpp>
+#include <GLFW/glfw3.h>
+#include <iostream>
 #include <memory>
 
 namespace {
@@ -36,6 +42,10 @@ namespace {
             m_Acceleration += force / m_Mass;
         }
 
+        void SetVelocity(const glm::vec3& velocity) {
+            m_Velocity = velocity;
+        }
+
         float GetMass() const { return m_Mass; }
         glm::vec3 GetVelocity() const { return m_Velocity; }
 
@@ -47,6 +57,15 @@ namespace {
 
     class ParticleSystemScene : public Circe::Scene {
     public:
+        void SetWindow(Circe::Window* window) { m_Window = window; }
+        void SetCamera(Circe::Camera* camera, const glm::vec3& target) {
+            m_Camera = camera;
+            m_CameraTarget = target;
+            if (m_Camera) {
+                m_Camera->SetLookAt(m_CameraTarget, m_CameraUp);
+            }
+        }
+
         ParticleSystemScene() {
             m_ParticleMesh = Circe::GenerateSphereMesh(0.02f, 16, 16);
 
@@ -54,19 +73,41 @@ namespace {
                 "assets/shaders/default.vert",
                 "assets/shaders/default.frag"
             );
+            auto lightShader = std::make_shared<Circe::Shader>(
+                "assets/shaders/default.vert",
+                "assets/shaders/light.frag"
+            );
             m_ParticleMaterial = std::make_shared<Circe::Material>(shader);
             m_ParticleMaterial->SetColor(glm::vec4(1.0f, 0.4f, 0.2f, 1.0f));
+
+            std::shared_ptr<Circe::Texture> particleTexture = std::make_shared<Circe::Texture>("assets/textures/Ground037_1K-JPG/Ground037_1K-JPG_Color.jpg");
+            m_ParticleMaterial->SetTexture("diffuseMap", particleTexture);
             m_ParticleModel = std::make_shared<Circe::Model>(m_ParticleMesh, m_ParticleMaterial);
+
+            m_LightMaterial = std::make_shared<Circe::Material>(lightShader);
+            m_LightModel = std::make_shared<Circe::Model>(m_ParticleMesh, m_LightMaterial);
+            m_LightModel->SetScale(glm::vec3(2.5f));
         }
 
         void OnInit() override {
+            // Create a light entity
+            auto lightEntity = std::make_unique<Circe::Entity>("MainLight");
+            lightEntity->GetTransform().Position = glm::vec3(0.0f, 0.0f, 0.0f);
+            glm::vec3 lightPosition = lightEntity->GetTransform().Position;
+            m_MainLight = lightEntity->AddBehavior<Circe::Light>(Circe::LightType::Point);
+            m_MainLight->SetColor(glm::vec3(1.0f, 0.8f, 0.4f));
+            m_MainLight->SetIntensity(1.2f);
+            lightEntity->SetModel(m_LightModel); // Optional: visualize the light source
+            lightEntity->AddBehavior<GravityBehavior>(0.8f);
+            AddEntity(std::move(lightEntity));
+
             // Create a simple particle entity
-            for (int i = 0; i < 19; ++i) {
+            for (int i = 0; i < 2; ++i) {
                 auto entity = std::make_unique<Circe::Entity>("Particle_" + std::to_string(i));
 
                 entity->SetModel(m_ParticleModel);
                 // Add gravity behavior
-                auto gravBehavior = entity->AddBehavior<GravityBehavior>(0.2f);
+                auto gravBehavior = entity->AddBehavior<GravityBehavior>(0.02f);
                 
                 // Set random position
                 entity->GetTransform().Position = glm::vec3(
@@ -75,12 +116,56 @@ namespace {
                     0.0f
                 );
 
+                glm::vec3 toLight = lightPosition - entity->GetTransform().Position;
+                glm::vec3 direction = glm::normalize(toLight);
+                glm::vec3 up(0.0f, 1.0f, 0.0f);
+                if (glm::abs(glm::dot(direction, up)) > 0.98f) {
+                    up = glm::vec3(1.0f, 0.0f, 0.0f);
+                }
+
+                glm::vec3 perpendicular = glm::normalize(glm::cross(direction, up));
+                gravBehavior->SetVelocity(perpendicular * 0.2f);
+
 
                 AddEntity(std::move(entity));
             }
         }
 
-         void OnUpdate(float deltaTime) override {
+        void OnUpdate(float deltaTime) override {
+            if (m_Window && m_Camera) {
+                GLFWwindow* native = m_Window->GetNativeWindow();
+                bool isDown = glfwGetMouseButton(native, GLFW_MOUSE_BUTTON_MIDDLE) == GLFW_PRESS;
+                double mouseX = 0.0;
+                double mouseY = 0.0;
+                glfwGetCursorPos(native, &mouseX, &mouseY);
+
+                if (isDown && !m_IsPanning) {
+                    m_IsPanning = true;
+                    m_LastMouseX = mouseX;
+                    m_LastMouseY = mouseY;
+                }
+
+                if (!isDown) {
+                    m_IsPanning = false;
+                }
+
+                if (m_IsPanning) {
+                    float dx = static_cast<float>(mouseX - m_LastMouseX);
+                    float dy = static_cast<float>(mouseY - m_LastMouseY);
+                    m_LastMouseX = mouseX;
+                    m_LastMouseY = mouseY;
+
+                    glm::vec3 forward = glm::normalize(m_CameraTarget - m_Camera->GetPosition());
+                    glm::vec3 right = glm::normalize(glm::cross(forward, m_CameraUp));
+                    glm::vec3 up = glm::normalize(glm::cross(right, forward));
+                    glm::vec3 panOffset = (-right * dx + up * dy) * m_PanSpeed;
+
+                    m_Camera->SetPosition(m_Camera->GetPosition() + panOffset);
+                    m_CameraTarget += panOffset;
+                    m_Camera->SetLookAt(m_CameraTarget, m_CameraUp);
+                }
+            }
+
             // Simple gravity between particles
             const float G = 0.1f; // Gravitational constant
 
@@ -90,6 +175,9 @@ namespace {
 
                 for (auto& entity2 : m_Entities) {
                     if (entity1.get() == entity2.get()) continue;
+                    auto gravBehavior2 = entity2->GetBehavior<GravityBehavior>();
+                    if (!gravBehavior2) continue;
+
 
                     auto pos1 = entity1->GetTransform().Position;
                     auto pos2 = entity2->GetTransform().Position;
@@ -100,7 +188,7 @@ namespace {
                     if (distance < 0.1f) continue; // Avoid division by zero
                     
                     // F = G * m1 * m2 / r^2
-                    float force = G * gravBehavior->GetMass() / (distance * distance);
+                    float force = G * gravBehavior->GetMass() * gravBehavior2->GetMass() / (distance * distance);
                     glm::vec3 forceVector = glm::normalize(direction) * force;
                     
                     gravBehavior->ApplyForce(forceVector);
@@ -108,10 +196,29 @@ namespace {
             }
         }
 
+        void OnRender(Circe::Renderer& renderer) override {
+            if (m_MainLight) {
+                renderer.SetLight(*m_MainLight);
+            }
+        }
+
     private:
         std::shared_ptr<Circe::Mesh> m_ParticleMesh;
         std::shared_ptr<Circe::Material> m_ParticleMaterial;
         std::shared_ptr<Circe::Model> m_ParticleModel;
+
+        std::shared_ptr<Circe::Material> m_LightMaterial;
+        std::shared_ptr<Circe::Model> m_LightModel;
+
+        Circe::Light* m_MainLight = nullptr;
+        Circe::Window* m_Window = nullptr;
+        Circe::Camera* m_Camera = nullptr;
+        glm::vec3 m_CameraTarget = glm::vec3(0.0f);
+        glm::vec3 m_CameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
+        float m_PanSpeed = 0.005f;
+        bool m_IsPanning = false;
+        double m_LastMouseX = 0.0;
+        double m_LastMouseY = 0.0;
 
 
     };
@@ -131,6 +238,8 @@ int main() {
     camera->SetPosition(glm::vec3(0.0f, 0.0f, 3.0f));
     camera->SetLookAt(glm::vec3(0.0f, 0.0f, 0.0f));
     engine.GetRenderer()->SetCamera(camera);
+    scene.SetWindow(engine.GetWindow());
+    scene.SetCamera(camera.get(), glm::vec3(0.0f, 0.0f, 0.0f));
     
     engine.SetScene(&scene);
     engine.Run();

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../Core/Export.h"
 #include "../Math/Transform.h"
 #include <string>
 #include <memory>
@@ -12,7 +13,7 @@ namespace Circe {
     class Renderer;
     class Model;
 
-    class Entity {
+    class CIRCE_API Entity {
     public:
         Entity(const std::string& name = "Entity")
             : m_Name(name), m_Active(true) {}

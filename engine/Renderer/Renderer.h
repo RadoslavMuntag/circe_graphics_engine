@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../Core/Export.h"
 #include <glm/glm.hpp>
 #include <memory>
 #include <vector>
@@ -9,6 +10,7 @@ namespace Circe {
     class Camera;
     class Mesh;
     class Material;
+    class Light;
 
     struct RenderCommand {
         std::shared_ptr<Mesh> mesh;
@@ -16,7 +18,7 @@ namespace Circe {
         glm::mat4 modelMatrix;
     };
 
-    class Renderer {
+    class CIRCE_API Renderer {
     public:
         Renderer();
         ~Renderer();
@@ -29,6 +31,12 @@ namespace Circe {
         void SetClearColor(const glm::vec4& color);
         void SetCamera(std::shared_ptr<Camera> camera) { m_Camera = camera; }
         std::shared_ptr<Camera> GetCamera() const { return m_Camera; }
+
+        void SetLight(const Light& light);
+        void SetLightPosition(const glm::vec3& position) { m_LightPosition = position; }
+        void SetLightColor(const glm::vec3& color) { m_LightColor = color; }
+        void SetLightIntensity(float intensity) { m_LightIntensity = intensity; }
+        void SetAmbientStrength(float strength) { m_AmbientStrength = strength; }
 
         // Render submission
         void SubmitMesh(std::shared_ptr<Mesh> mesh, std::shared_ptr<Material> material, const glm::mat4& modelMatrix);
@@ -43,6 +51,10 @@ namespace Circe {
         bool m_Initialized = false;
         std::shared_ptr<Camera> m_Camera;
         std::vector<RenderCommand> m_RenderQueue;
+        glm::vec3 m_LightPosition = glm::vec3(0.0f, 2.0f, 0.0f);
+        glm::vec3 m_LightColor = glm::vec3(1.0f);
+        float m_LightIntensity = 1.0f;
+        float m_AmbientStrength = 0.1f;
     };
 
 }

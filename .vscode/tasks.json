@@ -2,18 +2,44 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "CMake Build",
-      "detail": "Build the project using CMake",
+      "label": "CMake Configure Debug",
+      "detail": "Configure CMake for Debug build",
+      "type": "shell",
+      "command": "cmake",
+      "args": [
+        "-B",
+        "build/debug",
+        "-DCMAKE_BUILD_TYPE=Debug"
+      ],
+      "problemMatcher": []
+    },
+    {
+      "label": "CMake Configure Release",
+      "detail": "Configure CMake for Release build",
+      "type": "shell",
+      "command": "cmake",
+      "args": [
+        "-B",
+        "build/release",
+        "-DCMAKE_BUILD_TYPE=Release"
+      ],
+      "problemMatcher": []
+    },
+    {
+      "label": "CMake Build Debug",
+      "detail": "Build the project in Debug mode",
       "type": "shell",
       "command": "cmake",
       "args": [
         "--build",
-        "build"
+        "build/debug",
+        "-j4"
       ],
       "group": {
         "kind": "build",
         "isDefault": true
       },
+      "dependsOn": ["CMake Configure Debug"],
       "presentation": {
         "echo": true,
         "reveal": "always",
@@ -21,6 +47,62 @@
         "panel": "shared"
       },
       "problemMatcher": "$gcc"
+    },
+    {
+      "label": "CMake Build Release",
+      "detail": "Build the project in Release mode",
+      "type": "shell",
+      "command": "cmake",
+      "args": [
+        "--build",
+        "build/release",
+        "-j4"
+      ],
+      "group": "build",
+      "dependsOn": ["CMake Configure Release"],
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      },
+      "problemMatcher": "$gcc"
+    },
+    {
+      "label": "Clean Debug",
+      "detail": "Clean Debug build directory",
+      "type": "shell",
+      "command": "rm",
+      "args": [
+        "-rf",
+        "build/debug"
+      ],
+      "problemMatcher": []
+    },
+    {
+      "label": "Clean Release",
+      "detail": "Clean Release build directory",
+      "type": "shell",
+      "command": "rm",
+      "args": [
+        "-rf",
+        "build/release"
+      ],
+      "problemMatcher": []
+    },
+    {
+      "label": "Rebuild Debug",
+      "detail": "Clean and rebuild Debug",
+      "dependsOn": ["Clean Debug", "CMake Build Debug"],
+      "dependsOrder": "sequence",
+      "problemMatcher": []
+    },
+    {
+      "label": "Rebuild Release",
+      "detail": "Clean and rebuild Release",
+      "dependsOn": ["Clean Release", "CMake Build Release"],
+      "dependsOrder": "sequence",
+      "problemMatcher": []
     }
   ]
 }
