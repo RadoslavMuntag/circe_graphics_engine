@@ -1,4 +1,5 @@
 #include "Renderer.h"
+#include "../Core/Log.h"
 #include "Camera.h"
 #include "Light.h"
 #include "Mesh.h"
@@ -19,12 +20,19 @@ namespace Circe {
 
     void Renderer::Initialize() {
         if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
+            Log::Critical("Failed to initialize GLAD");
             throw std::runtime_error("Failed to initialize GLAD");
         }
 
         glEnable(GL_DEPTH_TEST);
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+        const GLubyte* renderer = glGetString(GL_RENDERER);
+        const GLubyte* version = glGetString(GL_VERSION);
+        Log::Info("OpenGL Renderer: " + std::string(reinterpret_cast<const char*>(renderer)));
+        Log::Info("OpenGL Version: " + std::string(reinterpret_cast<const char*>(version)));
+
 
         m_Initialized = true;
     }

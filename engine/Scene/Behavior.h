@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../Core/Export.h"
+#include "../Events/Event.h"
 
 namespace Circe {
 
@@ -14,8 +15,9 @@ namespace Circe {
         Entity* GetOwner() const { return m_Owner; }
 
         virtual void OnInit() {}
-        virtual void OnUpdate(float deltaTime) {}
+        virtual void OnUpdate(float deltaTime) { (void)deltaTime; }
         virtual void OnRender() {}
+        virtual void OnEvent(Event& event) { (void)event; }
         
     private:
         Entity* m_Owner = nullptr;

@@ -2,6 +2,7 @@
 #include "Export.h"
 
 namespace Circe {
+    class Event;
     class Window;
     class Renderer;
     class Scene;
@@ -20,6 +21,7 @@ namespace Circe {
         
         // Game sets the active scene
         void SetScene(Scene* scene);
+        void OnEvent(Event& event);
 
     private:
         void Initialize();

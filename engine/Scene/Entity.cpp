@@ -18,4 +18,15 @@ namespace Circe {
         }
     }
 
+    void Entity::OnEvent(Event& event) {
+        for (auto& behavior : m_Behaviors) {
+            if (behavior) {
+                behavior->OnEvent(event);
+                if (event.Handled) {
+                    break;
+                }
+            }
+        }
+    }
+
 }

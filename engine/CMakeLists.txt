@@ -2,6 +2,7 @@ add_library(Circe SHARED)
 
 target_sources(Circe
     PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/Core/Log.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Core/Window.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Core/Engine.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Core/Time.cpp
@@ -40,6 +41,7 @@ target_include_directories(Circe
         ${CMAKE_SOURCE_DIR}/external/glm
         ${CMAKE_SOURCE_DIR}/external/stb
         ${CMAKE_SOURCE_DIR}/external/glad/include
+        ${CMAKE_SOURCE_DIR}/external/spdlog/include
 )
 
 # GLFW

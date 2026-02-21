@@ -1,20 +1,8 @@
-#include <Core/Engine.h>
-#include <Renderer/Camera.h>
-#include <Renderer/Material.h>
-#include <Renderer/Mesh.h>
-#include <Renderer/Model.h>
-#include <Renderer/Renderer.h>
-#include <Renderer/Shader.h>
-#include <Renderer/Light.h>
-#include <Renderer/Texture.h>
-#include <Scene/Entity.h>
-#include <Scene/Scene.h>
-#include <Resources/SimpleMeshGen.h>
-#include <Core/Window.h>
+#include "Core/Log.h"
+#include <Circe.h>
 
 #include <glm/glm.hpp>
-#include <GLFW/glfw3.h>
-#include <iostream>
+#include <cmath>
 #include <memory>
 
 namespace {
@@ -57,11 +45,17 @@ namespace {
 
     class ParticleSystemScene : public Circe::Scene {
     public:
-        void SetWindow(Circe::Window* window) { m_Window = window; }
         void SetCamera(Circe::Camera* camera, const glm::vec3& target) {
             m_Camera = camera;
             m_CameraTarget = target;
             if (m_Camera) {
+                glm::vec3 offset = m_Camera->GetPosition() - m_CameraTarget;
+                float distance = glm::length(offset);
+                if (distance > 0.001f) {
+                    m_OrbitDistance = distance;
+                    m_OrbitYawDegrees = glm::degrees(std::atan2(offset.z, offset.x));
+                    m_OrbitPitchDegrees = glm::degrees(std::asin(offset.y / distance));
+                }
                 m_Camera->SetLookAt(m_CameraTarget, m_CameraUp);
             }
         }
@@ -94,6 +88,7 @@ namespace {
             auto lightEntity = std::make_unique<Circe::Entity>("MainLight");
             lightEntity->GetTransform().Position = glm::vec3(0.0f, 0.0f, 0.0f);
             glm::vec3 lightPosition = lightEntity->GetTransform().Position;
+            m_LightEntity = lightEntity.get();
             m_MainLight = lightEntity->AddBehavior<Circe::Light>(Circe::LightType::Point);
             m_MainLight->SetColor(glm::vec3(1.0f, 0.8f, 0.4f));
             m_MainLight->SetIntensity(1.2f);
@@ -129,41 +124,16 @@ namespace {
 
                 AddEntity(std::move(entity));
             }
+
+            UpdateCameraOrbit();
         }
 
         void OnUpdate(float deltaTime) override {
-            if (m_Window && m_Camera) {
-                GLFWwindow* native = m_Window->GetNativeWindow();
-                bool isDown = glfwGetMouseButton(native, GLFW_MOUSE_BUTTON_MIDDLE) == GLFW_PRESS;
-                double mouseX = 0.0;
-                double mouseY = 0.0;
-                glfwGetCursorPos(native, &mouseX, &mouseY);
+            (void)deltaTime;
 
-                if (isDown && !m_IsPanning) {
-                    m_IsPanning = true;
-                    m_LastMouseX = mouseX;
-                    m_LastMouseY = mouseY;
-                }
-
-                if (!isDown) {
-                    m_IsPanning = false;
-                }
-
-                if (m_IsPanning) {
-                    float dx = static_cast<float>(mouseX - m_LastMouseX);
-                    float dy = static_cast<float>(mouseY - m_LastMouseY);
-                    m_LastMouseX = mouseX;
-                    m_LastMouseY = mouseY;
-
-                    glm::vec3 forward = glm::normalize(m_CameraTarget - m_Camera->GetPosition());
-                    glm::vec3 right = glm::normalize(glm::cross(forward, m_CameraUp));
-                    glm::vec3 up = glm::normalize(glm::cross(right, forward));
-                    glm::vec3 panOffset = (-right * dx + up * dy) * m_PanSpeed;
-
-                    m_Camera->SetPosition(m_Camera->GetPosition() + panOffset);
-                    m_CameraTarget += panOffset;
-                    m_Camera->SetLookAt(m_CameraTarget, m_CameraUp);
-                }
+            if (m_Camera && m_LightEntity) {
+                m_CameraTarget = m_LightEntity->GetTransform().Position;
+                UpdateCameraOrbit();
             }
 
             // Simple gravity between particles
@@ -196,6 +166,60 @@ namespace {
             }
         }
 
+        void OnEvent(Circe::Event& event) override {
+            Circe::EventDispatcher dispatcher(event);
+
+            dispatcher.Dispatch<Circe::MouseButtonPressedEvent>([this](Circe::MouseButtonPressedEvent& e) {
+                if (e.GetMouseButton() == 2) {
+                    m_IsOrbiting = true;
+                    m_HasLastMouse = false;
+                    return true;
+                }
+                return false;
+            });
+
+            dispatcher.Dispatch<Circe::MouseButtonReleasedEvent>([this](Circe::MouseButtonReleasedEvent& e) {
+                if (e.GetMouseButton() == 2) {
+                    m_IsOrbiting = false;
+                    m_HasLastMouse = false;
+                    return true;
+                }
+                return false;
+            });
+
+            dispatcher.Dispatch<Circe::MouseMovedEvent>([this](Circe::MouseMovedEvent& e) {
+                if (!m_IsOrbiting) {
+                    return false;
+                }
+
+                if (!m_HasLastMouse) {
+                    m_LastMouseX = e.GetX();
+                    m_LastMouseY = e.GetY();
+                    m_HasLastMouse = true;
+                    return true;
+                }
+
+                float dx = e.GetX() - m_LastMouseX;
+                float dy = e.GetY() - m_LastMouseY;
+                m_LastMouseX = e.GetX();
+                m_LastMouseY = e.GetY();
+
+                m_OrbitYawDegrees += dx * m_OrbitSensitivity;
+                m_OrbitPitchDegrees -= dy * m_OrbitSensitivity;
+                m_OrbitPitchDegrees = glm::clamp(m_OrbitPitchDegrees, -85.0f, 85.0f);
+
+                UpdateCameraOrbit();
+                return true;
+            });
+
+            dispatcher.Dispatch<Circe::MouseScrolledEvent>([this](Circe::MouseScrolledEvent& e) {
+                m_OrbitDistance -= e.GetYOffset() * m_ZoomSpeed;
+                m_OrbitDistance = glm::clamp(m_OrbitDistance, m_MinOrbitDistance, m_MaxOrbitDistance);
+                UpdateCameraOrbit();
+                return true;
+            });
+        }
+
         void OnRender(Circe::Renderer& renderer) override {
             if (m_MainLight) {
                 renderer.SetLight(*m_MainLight);
@@ -210,15 +234,39 @@ namespace {
         std::shared_ptr<Circe::Material> m_LightMaterial;
         std::shared_ptr<Circe::Model> m_LightModel;
 
+        Circe::Entity* m_LightEntity = nullptr;
         Circe::Light* m_MainLight = nullptr;
-        Circe::Window* m_Window = nullptr;
         Circe::Camera* m_Camera = nullptr;
         glm::vec3 m_CameraTarget = glm::vec3(0.0f);
         glm::vec3 m_CameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
-        float m_PanSpeed = 0.005f;
-        bool m_IsPanning = false;
-        double m_LastMouseX = 0.0;
-        double m_LastMouseY = 0.0;
+        bool m_IsOrbiting = false;
+        bool m_HasLastMouse = false;
+        float m_LastMouseX = 0.0f;
+        float m_LastMouseY = 0.0f;
+        float m_OrbitDistance = 3.0f;
+        float m_OrbitYawDegrees = -90.0f;
+        float m_OrbitPitchDegrees = 0.0f;
+        float m_OrbitSensitivity = 0.2f;
+        float m_ZoomSpeed = 0.25f;
+        float m_MinOrbitDistance = 1.0f;
+        float m_MaxOrbitDistance = 30.0f;
+
+        void UpdateCameraOrbit() {
+            if (!m_Camera) {
+                return;
+            }
+
+            float yawRad = glm::radians(m_OrbitYawDegrees);
+            float pitchRad = glm::radians(m_OrbitPitchDegrees);
+
+            glm::vec3 offset;
+            offset.x = m_OrbitDistance * std::cos(pitchRad) * std::cos(yawRad);
+            offset.y = m_OrbitDistance * std::sin(pitchRad);
+            offset.z = m_OrbitDistance * std::cos(pitchRad) * std::sin(yawRad);
+
+            m_Camera->SetPosition(m_CameraTarget + offset);
+            m_Camera->SetLookAt(m_CameraTarget, m_CameraUp);
+        }
 
 
     };
@@ -232,13 +280,14 @@ int main() {
     
     Circe::Engine engine(WIDTH, HEIGHT, "Circe Engine");
     ParticleSystemScene scene;
+
+    CIRCE_LOG_INFO("Starting Particle System Scene");
     
     // Create a camera and set it on the renderer
     auto camera = std::make_shared<Circe::Camera>(45.0f, static_cast<float>(WIDTH) / static_cast<float>(HEIGHT), 0.1f, 100.0f);
     camera->SetPosition(glm::vec3(0.0f, 0.0f, 3.0f));
     camera->SetLookAt(glm::vec3(0.0f, 0.0f, 0.0f));
     engine.GetRenderer()->SetCamera(camera);
-    scene.SetWindow(engine.GetWindow());
     scene.SetCamera(camera.get(), glm::vec3(0.0f, 0.0f, 0.0f));
     
     engine.SetScene(&scene);

@@ -1,14 +1,22 @@
 #include "Engine.h"
 #include "Window.h"
+#include "Log.h"
 #include "Time.h"
 #include "../Renderer/Renderer.h"
 #include "../Scene/Scene.h"
 #include "Logging/ErrorReporting.h"
+#include "../Events/EventDispatcher.h"
+#include "../Events/ApplicationEvent.h"
 
 namespace Circe {
 
     Engine::Engine(int width, int height, const char* title) {
+        Log::Init();
+        Log::Info("Circe Engine initializing...");
         m_Window = std::make_unique<Window>(width, height, title);
+        m_Window->SetEventCallback([this](Event& event) {
+            OnEvent(event);
+        });
         m_Renderer = std::make_unique<Renderer>();
         Initialize();
     }
@@ -17,18 +25,35 @@ namespace Circe {
         Shutdown();
     }
     
-    void Engine::Initialize() {
+    void Engine::Initialize() { 
         m_Renderer->Initialize();
         m_Running = true;
         enableReportGlErrors();
+        
+        Log::Info("Circe Engine initialized successfully");
     }
 
     void Engine::Shutdown() {
+        Log::Info("Shutting down Circe Engine");
         m_Running = false;
+        Log::Shutdown();
     }
 
     void Engine::SetScene(Scene* scene) {
         m_ActiveScene = scene;
+    }
+
+    void Engine::OnEvent(Event& event) {
+        EventDispatcher dispatcher(event);
+
+        dispatcher.Dispatch<WindowCloseEvent>([this](WindowCloseEvent&) {
+            m_Running = false;
+            return true;
+        });
+
+        if (m_ActiveScene && !event.Handled) {
+            m_ActiveScene->DispatchEvent(event);
+        }
     }
 
     void Engine::Run() {

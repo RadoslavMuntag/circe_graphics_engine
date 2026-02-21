@@ -25,6 +25,20 @@ namespace Circe {
         renderer.Flush();
     }
 
+    void Scene::DispatchEvent(Event& event) {
+        OnEvent(event);
+
+        for (auto& entity : m_Entities) {
+            if (event.Handled) {
+                break;
+            }
+
+            if (entity && entity->IsActive()) {
+                entity->OnEvent(event);
+            }
+        }
+    }
+
     void Scene::AddEntity(std::unique_ptr<Entity> entity) {
         if (entity) {
             m_Entities.push_back(std::move(entity));

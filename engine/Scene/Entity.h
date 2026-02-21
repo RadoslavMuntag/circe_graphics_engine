@@ -2,6 +2,7 @@
 
 #include "../Core/Export.h"
 #include "../Math/Transform.h"
+#include "../Events/Event.h"
 #include <string>
 #include <memory>
 #include <memory>
@@ -22,6 +23,7 @@ namespace Circe {
 
         virtual void OnUpdate(float deltaTime);
         virtual void OnRender(Renderer& renderer);
+        virtual void OnEvent(Event& event);
 
         Transform& GetTransform() { return m_Transform; }
         const Transform& GetTransform() const { return m_Transform; }
