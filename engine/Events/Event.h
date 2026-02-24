@@ -7,11 +7,14 @@ namespace Circe {
 
 	enum class EventType {
 		None = 0,
+		//Application events
 		WindowClose,
 		WindowResize,
+		//Input events
 		KeyPressed,
 		KeyReleased,
 		KeyTyped,
+		//Mouse events
 		MouseButtonPressed,
 		MouseButtonReleased,
 		MouseMoved,

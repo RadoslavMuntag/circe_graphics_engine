@@ -1,10 +1,31 @@
+#include "pch.h"
+
 #include "SimpleMeshGen.h"
 #include "../Renderer/Mesh.h"
 #include <glm/glm.hpp>
 #include <glm/gtc/constants.hpp>
-#include <cmath>
+#include <memory>
 
 namespace Circe {
+    std::shared_ptr<Circe::Mesh> GenerateQuadMesh(float width, float height) {
+        float halfWidth = width / 2.0f;
+        float halfHeight = height / 2.0f;
+
+        std::vector<Circe::Vertex> vertices = {
+            { { -halfWidth, -halfHeight, 0.0f }, { 0.0f, 0.0f, 1.0f }, { 0.0f, 0.0f } },
+            { {  halfWidth, -halfHeight, 0.0f }, { 0.0f, 0.0f, 1.0f }, { 1.0f, 0.0f } },
+            { { halfWidth,  halfHeight, 0.0f }, { 0.0f, 0.0f, 1.0f }, { 1.0f, 1.0f } },
+            { { -halfWidth,  halfHeight, 0.0f }, { 0.0f, 0.0f, 1.0f }, { 0.0f, 1.0f } }
+        };
+
+        std::vector<unsigned int> indices = {
+            0, 1, 2,
+            2, 3, 0
+        };
+
+        return std::make_shared<Circe::Mesh>(vertices, indices);
+    }
+
     // function to generate a 3d spherical particle mesh
     std::shared_ptr<Circe::Mesh> GenerateSphereMesh(float radius, unsigned int sectorCount, unsigned int stackCount) {
         std::vector<Circe::Vertex> vertices;

@@ -1,3 +1,6 @@
+#include "glm/fwd.hpp"
+#include "pch.h"
+
 #include "Renderer.h"
 #include "../Core/Log.h"
 #include "Camera.h"
@@ -7,7 +10,6 @@
 #include "Shader.h"
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
-#include <stdexcept>
 
 namespace Circe {
 
@@ -60,6 +62,15 @@ namespace Circe {
         m_LightIntensity = light.GetIntensity();
     }
 
+    void Renderer::SetSkyBoxTexture(std::shared_ptr<Texture> cubemap) {
+        m_SkyboxTexture = cubemap;
+    }
+
+    void Renderer::SetCustomVec3Uniform(const std::string& name, glm::vec3 value) {
+        //Temporary method for setting custom uniforms, will be replaced with proper material system later
+        m_CustomUniforms[name] = value;
+    }
+
     void Renderer::DrawTriangle(const glm::vec3& p1, const glm::vec3& p2, const glm::vec3& p3) {
         // TODO: Implement with VAO/VBO
     }
@@ -82,14 +93,24 @@ namespace Circe {
         for (const auto& cmd : m_RenderQueue) {
             cmd.material->Bind();
 
+            if (m_SkyboxTexture) {
+                m_SkyboxTexture->BindCubemap(0);
+                cmd.material->GetShader()->SetInt("skybox", 0);
+            }
+
             auto shader = cmd.material->GetShader();
             shader->SetMat4("projection", m_Camera->GetProjectionMatrix());
             shader->SetMat4("view", m_Camera->GetViewMatrix());
             shader->SetMat4("model", cmd.modelMatrix);
             shader->SetVec3("lightPos", m_LightPosition);
             shader->SetVec3("lightColor", m_LightColor);
+            shader->SetVec3("cameraPos", m_Camera->GetPosition());
             shader->SetFloat("lightIntensity", m_LightIntensity);
             shader->SetFloat("ambientStrength", m_AmbientStrength);
+
+            for (const auto& uniform : m_CustomUniforms) {
+                shader->SetVec3(uniform.first.c_str(), uniform.second);
+            }
 
             cmd.mesh->Bind();
             glDrawElements(GL_TRIANGLES, cmd.mesh->GetIndexCount(), GL_UNSIGNED_INT, 0);

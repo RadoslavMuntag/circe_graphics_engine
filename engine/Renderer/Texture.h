@@ -1,16 +1,21 @@
 #pragma once
 
 #include <string>
+#include <vector>
 
 namespace Circe {
 
     class Texture {
     public:
         Texture(const std::string& path);
+        Texture(const std::vector<std::string>& faces);
         ~Texture();
 
         void Bind(int unit = 0) const;
         void Unbind() const;
+
+        void BindCubemap(int unit = 0) const;
+        void UnbindCubemap() const;
 
         unsigned int GetID() const { return m_ID; }
         int GetWidth() const { return m_Width; }

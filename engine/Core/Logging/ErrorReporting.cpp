@@ -1,6 +1,8 @@
+#include "pch.h"
+
 #include "ErrorReporting.h"
 #include "../Log.h"
-#include <sstream>
+
 
 //https://learnopengl.com/In-Practice/Debugging
 void GLAPIENTRY glDebugOutput(GLenum source,

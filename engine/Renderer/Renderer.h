@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../Core/Export.h"
+#include "Texture.h"
 #include <glm/glm.hpp>
 #include <memory>
 #include <vector>
@@ -37,6 +38,9 @@ namespace Circe {
         void SetLightColor(const glm::vec3& color) { m_LightColor = color; }
         void SetLightIntensity(float intensity) { m_LightIntensity = intensity; }
         void SetAmbientStrength(float strength) { m_AmbientStrength = strength; }
+        void SetSkyBoxTexture(std::shared_ptr<Texture> cubemap);
+
+        void SetCustomVec3Uniform(const std::string& name, glm::vec3 value);
 
         // Render submission
         void SubmitMesh(std::shared_ptr<Mesh> mesh, std::shared_ptr<Material> material, const glm::mat4& modelMatrix);
@@ -53,8 +57,11 @@ namespace Circe {
         std::vector<RenderCommand> m_RenderQueue;
         glm::vec3 m_LightPosition = glm::vec3(0.0f, 2.0f, 0.0f);
         glm::vec3 m_LightColor = glm::vec3(1.0f);
+        std::shared_ptr<Texture> m_SkyboxTexture;
         float m_LightIntensity = 1.0f;
         float m_AmbientStrength = 0.1f;
+
+        std::unordered_map<std::string, glm::vec3> m_CustomUniforms;
     };
 
 }

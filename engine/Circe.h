@@ -79,8 +79,6 @@ using namespace Circe;
  *     auto scene = std::make_unique<Scene>();
  *     auto entity = std::make_unique<Entity>("MyEntity");
  *     
- *     entity->AddBehavior<MouseFollowBehavior>(0.1f);
- *     
  *     scene->AddEntity(std::move(entity));
  *     engine.SetScene(scene.get());
  *     

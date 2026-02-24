@@ -1,3 +1,5 @@
+#include "pch.h"
+
 #include "Window.h"
 #include "Log.h"
 #include "../Events/ApplicationEvent.h"
@@ -5,8 +7,6 @@
 #include "../Events/MouseEvent.h"
 #include <GLFW/glfw3.h>
 #include <spdlog/fmt/fmt.h>
-#include <stdexcept>
-
 
 namespace Circe {
 
@@ -38,6 +38,7 @@ namespace Circe {
 
         // Framebuffer size callback
         glfwSetFramebufferSizeCallback(m_Window, [](GLFWwindow* window, int width, int height) {
+            Log::Info(fmt::runtime("Window resized: {}x{}"), width, height);
             auto* owner = static_cast<Window*>(glfwGetWindowUserPointer(window));
             if (!owner) {
                 return;

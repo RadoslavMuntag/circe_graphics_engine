@@ -1,3 +1,5 @@
+#include "pch.h"
+
 #include "Mesh.h"
 #include <glad/glad.h>
 

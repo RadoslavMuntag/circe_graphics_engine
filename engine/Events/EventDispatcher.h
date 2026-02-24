@@ -10,6 +10,7 @@ namespace Circe {
             : m_Event(event) {
         }
 
+        // Dispatches the event if it matches the specified type, and calls the provided function
         template<typename TEvent, typename TFunc>
         bool Dispatch(const TFunc& func) {
             if (m_Event.GetEventType() == TEvent::GetStaticType()) {

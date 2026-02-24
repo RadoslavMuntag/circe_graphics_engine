@@ -1,3 +1,5 @@
+#include "pch.h"
+
 #include "Light.h"
 #include "../Scene/Entity.h"
 

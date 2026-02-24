@@ -1,6 +1,5 @@
 #pragma once
 
-#include <memory>
 #include "Math/Transform.h"
 
 namespace Circe {

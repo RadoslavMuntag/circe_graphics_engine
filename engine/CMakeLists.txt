@@ -22,6 +22,11 @@ target_sources(Circe
         ${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/stb.cpp
 )
 
+target_precompile_headers(Circe
+    PRIVATE
+        "$<$<COMPILE_LANGUAGE:CXX>:${CMAKE_CURRENT_SOURCE_DIR}/pch.h>"
+)
+
 # Shared library configuration
 target_compile_definitions(Circe 
     PRIVATE 

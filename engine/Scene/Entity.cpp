@@ -1,3 +1,5 @@
+#include "pch.h"
+
 #include "Entity.h"
 #include "../Renderer/Model.h"
 #include "../Renderer/Renderer.h"
