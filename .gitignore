@@ -43,3 +43,6 @@
 build/
 
 .cache/
+
+# other
+assets/misc

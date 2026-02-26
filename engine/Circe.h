@@ -46,6 +46,7 @@
 
 #include "Scene/Scene.h"
 #include "Scene/Entity.h"
+#include "Scene/CameraEntity.h"
 #include "Scene/Behavior.h"
 
 // ============================================================================

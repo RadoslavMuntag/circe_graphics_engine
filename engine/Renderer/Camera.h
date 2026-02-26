@@ -18,6 +18,9 @@ namespace Circe {
         glm::mat4 GetViewMatrix() const { return m_ViewMatrix; }
         glm::mat4 GetProjectionMatrix() const { return m_ProjectionMatrix; }
 
+        glm::vec3 GetTarget() const { return m_Target; }
+        glm::vec3 GetUp() const { return m_Up; }
+
     private:
         void RecalculateViewMatrix();
 

@@ -16,7 +16,6 @@ target_sources(Circe
         ${CMAKE_CURRENT_SOURCE_DIR}/Renderer/Light.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Renderer/Model.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Resources/SimpleMeshGen.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/Scene/Behavior.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Scene/Entity.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Scene/Scene.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/stb.cpp

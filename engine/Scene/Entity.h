@@ -42,6 +42,7 @@ namespace Circe {
             auto behavior = std::make_unique<T>(std::forward<Args>(args)...);
             behavior->SetOwner(this);
             T* ptr = behavior.get();
+            behavior->OnInit();
             m_Behaviors.push_back(std::move(behavior));
             return ptr;
         }
