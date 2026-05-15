@@ -15,7 +15,14 @@
 #include "Core/Engine.h"
 #include "Core/Window.h"
 #include "Core/Export.h"
+#include "Core/LayerStack.h"
 #include "Core/Log.h"
+
+// ============================================================================
+// ImGui Layer
+// ============================================================================
+
+#include "ImGui/imGuiLayer.h"
 
 // ============================================================================
 // Events System

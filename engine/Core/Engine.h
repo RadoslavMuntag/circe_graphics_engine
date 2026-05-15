@@ -2,6 +2,7 @@
 
 #include <memory>
 #include "Export.h"
+#include "LayerStack.h"
 
 namespace Circe {
     class Event;
@@ -25,6 +26,13 @@ namespace Circe {
         void SetScene(Scene* scene);
         void OnEvent(Event& event);
 
+        void PushLayer(Layer* layer);
+        void PushOverlay(Layer* overlay);
+
+        static Engine& Get() {
+            return *s_Instance;
+        }
+
     private:
         void Initialize();
         void Shutdown();
@@ -33,8 +41,15 @@ namespace Circe {
 
         std::unique_ptr<Window> m_Window;
         std::unique_ptr<Renderer> m_Renderer;
-        Scene* m_ActiveScene = nullptr;
+        Scene* m_ActiveScene = nullptr; // TODO: get rid of Scene in Engine, Some layer should manage the active scene instead
+
+        LayerStack m_LayerStack;
         
         bool m_Running = false;
+
+        static Engine* s_Instance;
+        
     };
+
+
 }

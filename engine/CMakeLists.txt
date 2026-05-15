@@ -6,7 +6,10 @@ target_sources(Circe
         ${CMAKE_CURRENT_SOURCE_DIR}/Core/Window.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Core/Engine.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Core/Time.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/Core/Layer.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/Core/LayerStack.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Core/Logging/ErrorReporting.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/ImGui/imGuiLayer.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Renderer/Renderer.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Renderer/Camera.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Renderer/Shader.cpp

@@ -1,10 +1,14 @@
 #pragma once
 
 #include "../Core/Export.h"
+#include "Shader.h"
 #include "Texture.h"
 #include <glm/glm.hpp>
 #include <memory>
 #include <vector>
+
+#include <functional>
+#include <unordered_map>
 
 namespace Circe {
 
@@ -17,6 +21,7 @@ namespace Circe {
         std::shared_ptr<Mesh> mesh;
         std::shared_ptr<Material> material;
         glm::mat4 modelMatrix;
+        std::function<void(Shader&)> perDrawBinder; // Optional function to bind additional uniforms or state before drawing
     };
 
     class CIRCE_API Renderer {
@@ -43,12 +48,16 @@ namespace Circe {
         void SetCustomVec3Uniform(const std::string& name, glm::vec3 value);
 
         // Render submission
-        void SubmitMesh(std::shared_ptr<Mesh> mesh, std::shared_ptr<Material> material, const glm::mat4& modelMatrix);
+        using ShaderBinder = std::function<void(Shader&)>;
+        void SetPerFrameBinder(ShaderBinder binder) { m_PerFrameBinder = std::move(binder); }
+        
+        void SubmitMesh(std::shared_ptr<Mesh> mesh, 
+                        std::shared_ptr<Material> material, 
+                        const glm::mat4& modelMatrix,
+                        ShaderBinder perDrawBinder = nullptr);
+        
         void Flush();
 
-        // Drawing primitives
-        void DrawTriangle(const glm::vec3& p1, const glm::vec3& p2, const glm::vec3& p3);
-        void DrawQuad(const glm::vec3& position, const glm::vec2& size);
 
     private:
         glm::vec4 m_ClearColor;
@@ -61,6 +70,7 @@ namespace Circe {
         float m_LightIntensity = 1.0f;
         float m_AmbientStrength = 0.1f;
 
+        ShaderBinder m_PerFrameBinder;
         std::unordered_map<std::string, glm::vec3> m_CustomUniforms;
     };
 

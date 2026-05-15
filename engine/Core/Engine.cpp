@@ -10,8 +10,16 @@
 #include "../Events/ApplicationEvent.h"
 
 namespace Circe {
+    Engine* Engine::s_Instance = nullptr;
 
     Engine::Engine(int width, int height, const char* title) {
+        if (s_Instance) {
+            Log::Critical("Attempted to create multiple instances of Engine");
+            throw std::runtime_error("Engine instance already exists");
+        }
+        
+        s_Instance = this;
+
         Log::Init();
         Log::Info("Circe Engine initializing...");
         m_Window = std::make_unique<Window>(width, height, title);
@@ -40,7 +48,16 @@ namespace Circe {
         Log::Shutdown();
     }
 
+    void Engine::PushLayer(Layer* layer) {
+        m_LayerStack.PushLayer(layer);
+    }
+
+    void Engine::PushOverlay(Layer* overlay) {
+        m_LayerStack.PushOverlay(overlay);
+    }
+
     void Engine::SetScene(Scene* scene) {
+        // TODO: Erase secene stuff from engine
         m_ActiveScene = scene;
     }
 
@@ -52,6 +69,15 @@ namespace Circe {
             return true;
         });
 
+        for (auto it = m_LayerStack.rbegin(); it != m_LayerStack.rend(); ++it) {
+            if (event.Handled) {
+                break;
+            }
+            (*it)->OnEvent(event);
+        }
+
+
+        // TODO: Erase secene stuff from engine
         if (m_ActiveScene && !event.Handled) {
             m_ActiveScene->DispatchEvent(event);
         }
@@ -60,6 +86,7 @@ namespace Circe {
     void Engine::Run() {
         Time::Reset();
         
+        // TODO: Erase secene stuff from engine
         if (m_ActiveScene) {
             m_ActiveScene->OnInit();
         }
@@ -71,25 +98,33 @@ namespace Circe {
             m_Window->PollEvents();
             
             Update(deltaTime);
-            Render();
+            Render(); // TODO: Move render call to a layer, Engine should not know about rendering
             
             m_Window->SwapBuffers();
         }
         
+        // TODO: Erase secene stuff from engine
         if (m_ActiveScene) {
             m_ActiveScene->OnShutdown();
         }
     }
 
     void Engine::Update(float deltaTime) {
+
+        // TODO: Erase secene stuff from engine
         if (m_ActiveScene) {
             m_ActiveScene->Update(deltaTime);
+        }
+
+        for (Layer* layer : m_LayerStack) {
+            layer->OnUpdate(deltaTime);
         }
     }
 
     void Engine::Render() {
         m_Renderer->Clear();
-        
+
+        // TODO: Erase secene stuff from engine
         if (m_ActiveScene) {
             m_ActiveScene->Render(*m_Renderer);
         }

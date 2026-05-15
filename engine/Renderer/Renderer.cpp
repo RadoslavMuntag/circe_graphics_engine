@@ -71,17 +71,12 @@ namespace Circe {
         m_CustomUniforms[name] = value;
     }
 
-    void Renderer::DrawTriangle(const glm::vec3& p1, const glm::vec3& p2, const glm::vec3& p3) {
-        // TODO: Implement with VAO/VBO
-    }
-
-    void Renderer::DrawQuad(const glm::vec3& position, const glm::vec2& size) {
-        // TODO: Implement with VAO/VBO
-    }
-
-    void Renderer::SubmitMesh(std::shared_ptr<Mesh> mesh, std::shared_ptr<Material> material, const glm::mat4& modelMatrix) {
+    void Renderer::SubmitMesh(std::shared_ptr<Mesh> mesh,
+                          std::shared_ptr<Material> material,
+                          const glm::mat4& modelMatrix,
+                          ShaderBinder perDrawBinder) {
         if (mesh && material) {
-            m_RenderQueue.push_back({ mesh, material, modelMatrix });
+            m_RenderQueue.push_back({ mesh, material, modelMatrix, std::move(perDrawBinder) });
         }
     }
 
